@@ -1,4 +1,27 @@
 # plrd
+
+> **Paper-specific MOSEK fork.** This repository is a minimal fork of the
+> [main `plrd` package](https://github.com/ghoshadi/plrd), based on upstream
+> commit [`aa23041`](https://github.com/ghoshadi/plrd/commit/aa23041c1cc9dc46eb85974167b22c88df6587a3).
+
+The original package implements Partially Linear Regression Discontinuity
+inference proposed by Ghosh, Imbens and Wager (2025). This fork retains the
+upstream implementation and attribution, changing only the internal quadratic
+program from `quadprog` to the MOSEK conic optimizer through `Rmosek`.
+
+This version was used for Michalik et al. (2026), *The population-level impact
+of herpes zoster vaccination on dementia, cerebrovascular, and all-cause
+mortality: Evidence from country-wide death certificate data for England*.
+
+A working MOSEK installation and license are required. After installing
+`Rmosek`, install this fork with:
+
+```r
+remotes::install_github("FelixMichalik/plrd@paper-2026-mosek")
+```
+
+## Upstream package documentation
+
 Partially Linear Regression Discontinuity Inference, as proposed by Ghosh, Imbens and Wager (2025).
 
 The development version of this package can be installed using devtools:

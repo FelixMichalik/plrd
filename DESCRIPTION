@@ -1,22 +1,23 @@
 Package: plrd
 Title: Partially Linear Regression Discontinuity Inference
-Version: 0.0.1
+Version: 0.0.1.9000
 Authors@R: c(
     person("Aditya", "Ghosh", role = c("aut", "cre"), email = "ghoshadi@stanford.edu"),
     person("Guido", "Imbens", role = "aut"),
     person("Erik", "Sverdrup", role = "aut"),
-    person("Stefan", "Wager", role = "aut")
+    person("Stefan", "Wager", role = "aut"),
+    person("Felix", "Michalik", role = "ctb")
     )
-Description: Estimation and inference for regression discontinuity designs as proposed by Ghosh, Imbens, and Wager (2025) <doi:10.48550/arXiv.2503.09907>.
+Description: Estimation and inference for regression discontinuity designs as proposed by Ghosh, Imbens, and Wager (2025) <doi:10.48550/arXiv.2503.09907>. This paper-specific fork uses MOSEK for the internal quadratic program.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     Matrix,
-    quadprog,
+    Rmosek,
     withr
 Suggests:
     testthat (>= 3.0.0)
-URL: https://github.com/ghoshadi/plrd
-BugReports: https://github.com/ghoshadi/plrd/issues
+URL: https://github.com/FelixMichalik/plrd, https://github.com/ghoshadi/plrd
+BugReports: https://github.com/FelixMichalik/plrd/issues

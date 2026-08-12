@@ -1,3 +1,51 @@
+solve.qp.mosek <- function(Dmat.diagonal, dvec, Amat, bvec, meq, verbose) {
+  natural.scale <- sqrt(Dmat.diagonal + as.numeric(Dmat.diagonal == 0))
+  A.scaled <- Amat %*% Matrix::Diagonal(
+    ncol(Amat),
+    x = 1 / natural.scale
+  )
+  num.params <- ncol(Amat)
+  penalized <- which(Dmat.diagonal != 0)
+
+  problem <- list(
+    sense = "min",
+    A = cbind(A.scaled, Matrix::Matrix(0, nrow(A.scaled), 2)),
+    bc = rbind(
+      blc = bvec,
+      buc = c(bvec[seq_len(meq)], rep(Inf, nrow(A.scaled) - meq))
+    ),
+    bx = rbind(
+      blx = c(rep(-Inf, num.params), 0, 1),
+      bux = c(rep(Inf, num.params), Inf, 1)
+    ),
+    cones = cbind(list(
+      "RQUAD",
+      c(num.params + 1L, num.params + 2L, penalized)
+    )),
+    c = c(dvec / natural.scale, 1, 0),
+    iparam = list(NUM_THREADS = 1L)
+  )
+
+  result <- if (verbose) {
+    Rmosek::mosek(problem)
+  } else {
+    Rmosek::mosek(problem, opts = list(verbose = 0))
+  }
+  if (!identical(result$response$code, 0)) {
+    stop("MOSEK returned: ", result$response$msg)
+  }
+  if (is.null(result$sol$itr$xx)) {
+    stop("MOSEK did not return an interior-point solution.")
+  }
+  if (!result$sol$itr$solsta %in% c("OPTIMAL", "NEAR_OPTIMAL")) {
+    stop("MOSEK solution status: ", result$sol$itr$solsta)
+  }
+
+  list(
+    solution = result$sol$itr$xx[seq_len(num.params)] / natural.scale
+  )
+}
+
 #' plrd: Partially Linear Regression Discontinuity Inference
 #'
 #' Optimized estimation and bias-aware inference for treatment effects identified by regression discontinuities
@@ -392,11 +440,10 @@ plrd.optim <- function (Y = NULL, X = NULL, threshold = NULL, W = NULL,
   gamma.1 = rep(0, num.bucket)
 
   if(verbose){
-    print(paste0("Running quadprog with problem of size: ", dim(Amat)[1], " x ", dim(Amat)[2], "..."))
+    print(paste0("Running MOSEK with problem of size: ", dim(Amat)[1], " x ", dim(Amat)[2], "..."))
   }
-  # Solve quadratic programming problem
-  soln = quadprog::solve.QP(Matrix::Diagonal(num.params, Dmat.diagonal + 1e-6),
-                            -dvec, Matrix::t(Amat), bvec, meq = meq)
+  # Solve the quadratic programming problem with MOSEK
+  soln = solve.qp.mosek(Dmat.diagonal, dvec, Amat, bvec, meq, verbose)
 
   gamma.0[realized.idx.0] = -soln$solution[1:num.realized.0]/sigma.sq/2
   gamma.1[realized.idx.1] = -soln$solution[num.realized.0 + 1:num.realized.1]/sigma.sq/2
